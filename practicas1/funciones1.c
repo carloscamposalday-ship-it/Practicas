@@ -15,3 +15,24 @@ int longitudCadena(char *cadena) {
     }
     return ptr - cadena;
 }
+void invertirArreglo(int *arr, int size) {
+    int *inicio = arr;
+    int *fin = arr + size - 1;
+    
+    while (inicio < fin) {
+        swap(inicio, fin);
+        inicio++;
+        fin--;
+    }
+}
+
+// Cuenta números pares en arreglo
+int cuentaPares(int *arr, int size) {
+    int contador = 0;
+    for (int i = 0; i < size; i++) {
+        if (*(arr + i) % 2 == 0) {
+            contador++;
+        }
+    }
+    return contador;
+}
