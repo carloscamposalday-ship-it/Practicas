@@ -36,3 +36,6 @@ int cuentaPares(int *arr, int size) {
     }
     return contador;
 }
+int main() {
+    return 0;
+}
