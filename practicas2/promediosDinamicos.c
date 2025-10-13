@@ -26,6 +26,7 @@ void limpiarBuffer(void)
 void main()
 {
     printf("=== Calculadora de Promedio Dinámica ===\n\n");
+
     int opcion = 0;
 
     /* -------------------------------------------------------------------
@@ -35,8 +36,10 @@ void main()
     -------------------------------------------------------------------*/
 
     float *calificaciones = NULL; // Puntero para el arreglo dináminco
-    int numCamlificaciones = 0;   // Número de calificaciones a ingresar
+    int numCalificaciones = 0;   // Número de calificaciones a ingresa
+    
 
+    // Blucle principal del menú: sigue hast que el usuario elija salir (2)
     while (opcion != 2)
     {
         printf("1) Ingresar calificaciones\n");
@@ -46,39 +49,107 @@ void main()
         {
             printf("\n=== Entrada invalida === \nPor favor seleccione una opcion del menu:\n");
             limpiarBuffer(); // Limpiar el búfer de entrada para evitar problemas en la siguiente lectura
-            continue;        // Volver al inicio del bucle para pedir la opción nuevamente
+            continue;      // Volver al inicio del bucle para pedir la opción nuevamente
         }
 
+        // Desde aquí se maneja la opción seleccionada por el usuario
         switch (opcion)
         {
         case 1:
-
-            /*-------------------------------------------------------------------
-            Flujo principal para capturar calificaciones de forma incremetal.
-            Cumple con:
-            -Pregunta n (o "¿Cuántas más?").
-            -Usa malloc/realloc según corresponda.
-            -Valida cada calificacion (0,10).
-            -Calcula y muestra el promedio actualizado.
-            -Indicar Aprobado/Reprobado (mínimo 7.0).
-            -Preguntar si desea agragar más (s/n).
-            ----------------------------------------------------------------------*/
-            char continuar = 's'; // Variable para controlar si se agraga más calificaciones
+        {
+            //Este bloque permite ingresar calificaciones en un ciclo
+            //Alfinal preguntar si desea ingresar mas calificaciones
+            char continuar = 's';
             do
             {
-                int nuevasCalificaciones = 0; // Número de calificaciones a agregar en esta iteración
-
-                if (numCamlificaciones == 0)
-                    printf("\n¿Cuántas calificaciones desea ingresar ahora? ");
+                int nuevasCalificaciones = 0; //Cuántas se agregará en esta iteración
+                
+                //Mensaje distinto si es la primera captura o si ya hay calificaciones
+                if (numCalificaciones == 0)
+                    printf("\n¡Cuántas calificaciones desea ingresar ahora? ");
                 else
-                    printf("\nCuántas calificaciones más desea agragar ahora? ");
+                    printf("\nCuántas calificaficaicones más deseas agragar ahora? ");
 
-                if(scanf("%d", &nuevasCalificaciones) != 1 || nuevasCalificaciones <= 0) {
-                    printf("\n=== Entrada invalida === \nPor favor ingrese un número válido de calificaciones.\n");
+                // Leemos cuántas agragará y validamos que sea número > 0
+                if (scanf("%d", &nuevasCalificaciones) != 1 || nuevasCalificaciones <= 0) {
+                    printf("\n== Entradas invalidas == \nPor favor ingrese un numero valido de calificaciones.\n");
                     limpiarBuffer(); // Limpiar el búfer de entrada para evitar problemas en la siguiente lectura
-                    continue; // Volver al inicio del bucle para pedir el número nuevamente
+                    continue; //Reiniciar el ciclo do
+
                 }
+
+                // ===Reserva o redimensión de memoria dinámica===
+                // nuevoTotal = califs que ya teniamos + la nuevas a agrgar
+                size_t nuevoTotal = (size_t)numCalificaciones + (size_t)nuevasCalificaciones;
+
+                // temp será el puntero temporal de la reserva/redimensión
+                float *temp = NULL;
+
+                if (numCalificaciones = 0) {
+                    //Prmera vez: pedimos un bloque con malloc para 'nuevoTotal' flotantes
+                    temp = (float*)malloc(nuevoTotal + sizeof(float));
+
+                }else {
+                    //Ya hay datos capturados: ampliamos el bloque existente con realloc
+                    temp = (float*)realloc(calificaciones, nuevoTotal * sizeof(float));
+                }
+
+                // Validamos que la reserva/redimensión haya sido exitosa
+                if (temp == NULL) {
+                    // Si malloc/ralloc falla, No tocamos 'Califiaciones' y mostramos error
+                    printf("\n=== Error de memoria === \nNose ha podido reservar memorria.\n");
+                    break; //Salimos al menú por seguridad
+                }
+
+                // Si todo va bien, ahora 'Calificaciones' apunta al bloque actualizado
+                calificaciones = temp;
+
+                // Guardamos desde el indice en el que nos quedamos
+                int baseIndex = nuevasCalificaciones;
+
+                // ===Camputara de Calificaicones (con validación 0..10) ===
+                for (int i = 0; i < nuevasCalificaciones; ++i) {
+                {
+                        float val = 0.0f; // aquí se guada cada calificación tecleada
+                        int ok = 0;  //bandera de validación
+
+                        do {
+                                printf("Ingresa la calificacion %d: ", baseIndex + i +1);
+                                // Validamos que sea número
+                                if (scanf("%f", &val) != 1) {
+                                        limpiarBuffer();  //Limpiamos basura (ej: letras)
+                                        printf("== Entrada invalida == \nPor favor ingrese un numero valido entre 0 y 10.\n");
+                                        continue; //volvemos a pedir la calificación
+                                }
+
+                                //Validamos rango [0..10]
+                                if(val < 0.0f || val > 10.00f) {
+                                    printf("=== Fuera de rango === \nPor favor ingresa1 un numero entre 0 y 10.\n");
+                                    continue; //Volvemos a pedir la calificaión i 
+                                }
+                                
+                                ok = 1; //Si llega aquí, la calificaión es válida
+                            
+                        } while (ok == 0); //Repetir hasta que la calificación sea válida
+
+                        // Guardamos la calificación en el arreglo dinámico
+                  
+                    }
+
+                }
+                // Actualizamos el total acumulado (ya que agregamos 'nuevasCalificaciones')
+
+
+
+            
+                
+
+
+                    
             }
+
+        }
+
 
         case 2:
             // se libera la memoria reservada
