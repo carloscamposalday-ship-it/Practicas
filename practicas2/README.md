@@ -6,4 +6,4 @@ Características Memoria dinámica: Uso de malloc y realloc para gestión flexib
 
 Hecho por: [Campos Alday José Carlos]
 
-Para uasar: gcc promediosDinamicos.c -o ejecutador ./ejecutador
+Para usar: gcc promediosDinamicos.c -o ejecutador ./ejecutador
