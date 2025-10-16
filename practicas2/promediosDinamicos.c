@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>    
 
 void main(){
     printf("=== Calculadora de Promedio Dinámica ===\n\n");
