@@ -1,132 +1,121 @@
 #include <stdio.h>
-#include <stdlib.h>    
+#include <stdlib.h>
 
-void main(){
+void main() {
     printf("=== Calculadora de Promedio Dinámica ===\n\n");
-    int opcion = 0;
+    int opcion = 0; // opción del menú principal
 
-    //Variablespara géstión de memoria dinámica
-    double *calificaciones = NULL;  //puntero al arreglo cdinámico de calificaciones
-    int total_calificaciones = 0; // Contador del total de calificaciones almacenadas
+    // Variable para gestión de memoria dinámica
+    double *p = NULL; // puntero al bloque dinámico de calificaciones
+    int total = 0;    // contador del total de calificaciones almacenadas
 
-
-    while(opcion != 2){
+    while (opcion != 2) {
+        // Mostrar menú principal
         printf("1) Ingresar calificaciones\n");
         printf("2) Salir\n");
         printf("Seleccione una opcion: ");
-        scanf("%i",&opcion);
 
-        switch(opcion){
-        case 1:
-        {
-            char respuesta;
-            int continuar = 1;
+        // Validar entrada (evita bucles si se escribe letra o símbolo)
+        if (scanf("%d", &opcion) != 1) {
+            int c; while ((c = getchar()) != '\n' && c != EOF) {} // limpia búfer
+            printf("\nEntrada inválida. Por favor ingrese un número.\n\n");
+            opcion = 0;
+            continue;
+        }
+        
+       switch (opcion) {
+        case 1: {
+            // Solicitar cantidad de calificaciones
+            int nuevas;
+            printf("\n¿Cuántas calificaciones desea ingresar?: ");
+            if (scanf("%d", &nuevas) != 1 || nuevas <= 0) {
+                int c; while ((c = getchar()) != '\n' && c != EOF) {} // limpia entrada
+                printf("Número inválido.\n\n");
+                continue;
+            }
 
-            do {
-                // Preguuntar cuantas calificaciones ingresar
-                int nuevas_calificaciones;
-                if(total_calificaciones == 0) {
-                    printf("\n¿Cuámtas calificaciones desea ingresar? ");
-                }else{
-                    printf("\n¿Cuántas calificaciones más desa ingresar? ");
-                }
-                scanf("%d", &nuevas_calificaciones);
+            // Gestión de memoria dinámica
+            if (total == 0) {
+                // Primera vez: reservar memoria
+                p = (double *)malloc(nuevas * sizeof(double));
+            } else {
+                // Expandir memoria existente
+                p = (double *)realloc(p, (total + nuevas) * sizeof(double));
+            }
 
-                // Validar que el número sea válido
-                if(nuevas_calificaciones <= 0) {
-                printf("Error: Debe ingresar un número mayor a 0.\n");
-                continue; // Volver al inicio del bucle
-                }
+            // Verificar si la reserva de memoria fue exitosa
+            if (p == NULL) {
+                printf("Error: No se pudo asignar memoria.\n");
+                return;
+            }
 
-                //Gestion de memoria dinámica
-                int nuevo_total = total_calificaciones + nuevas_calificaciones;
-                double *temp;
+            // Puntero auxiliar que apunta al primer hueco libre
+            double *q = p + total;
 
-                if(total_calificaciones == 0) {
-                    //Primera vez: reservar memoria con malloc
-                    temp = (double*)malloc(nuevo_total * sizeof(double));
-                }else{
-                    //Expandir memoria existente con realloc
-                    temp = (double*)realloc(calificaciones, nuevo_total * sizeof(double));
-                }
+            // Captura de calificaciones con notación de punteros (solo 0..10)
+            for (int i = 0; i < nuevas; i++) {
+                // bucle hasta que se ingrese un double válido en [0,10]
+                while (1) {
+                    printf("Ingrese la calificación %d (0 a 10): ", total + i + 1);
 
-                //Verificar si la resrva de memoria fue exitosa
-                if(temp == NULL) {
-                    printf("Error: Nose pudo reservar memoria.\n");
-                    break;
-                }
-                calificaciones = temp;
-
-                //Captura de califiacaciones con validación de rango
-                printf("\n");
-                for(int i = 0; i < nuevas_calificaciones; i++) {
-                    double calificacion;
-                    int valida = 0;
-
-                    while(!valida) {
-                        printf("Ingrese la calificación %d: ", total_calificaciones + i + 1);
-                        scanf("%lf", &calificacion);
-
-                        //Validar que la calificación esté entre 0 y 10
-                        if(calificacion >= 0.0 && calificacion <= 10.0) {
-                            valida = 1;
-                        }else{
-                            printf("Error: La calificaición debe estar entre 0 y 10.\n");
-                        }
+                    // validar que sea número
+                    if (scanf("%lf", (q + i)) != 1) {
+                        int c; while ((c = getchar()) != '\n' && c != EOF) {} // limpia
+                        printf("Entrada inválida. Intente de nuevo.\n");
+                        continue;
                     }
 
-                    // Almacenar calificación en el arreglo dinámico
-                    calificaciones[total_calificaciones + i] = calificacion;
+                    // validar rango 0..10
+                    if (*(q + i) < 0.0 || *(q + i) > 10.0) {
+                        printf("Error: La calificación debe estar entre 0 y 10.\n");
+                        continue;
+                    }
+
+                    // válido: salir del while(1)
+                    break;
                 }
+            }
 
-                // Actualizar contador total de calificaciones
-                total_calificaciones = nuevo_total;
+            // Actualizar contador total de calificaciones
+            total = total + nuevas;
 
-                //Calculo del promedio
-                double suma = 0.0;
-                for(int i = 0; i < total_calificaciones; i++) {
-                    suma += calificaciones[i];
-                }
-                double promedio = suma / total_calificaciones;
+            // Cálculo del promedio usando punteros
+            double suma = 0.0;
+            double *it = p;          // puntero al inicio
+            double *fin = p + total; // puntero al final
 
-                //Mostrar resutados: Promedio y Estado
-                printf("\nPromedio: %.2f\n", promedio);
-                if(promedio >= 7.0) {
-                    printf("Estado: Aprobado\n");
-                }else{
-                }printf("Estado: Reprobado\n");
-                
+            while (it < fin) {
+                suma += *it; // sumar el valor apuntado
+                it++;        // avanzar al siguiente
+            }
 
-                //Preguntar si desea agregar más calificacines
-                printf("\n¿Desea agregar más calificaciones? (s/n): ");
-                scanf(" %c", &respuesta);
+            double promedio = suma / total;
 
-                // Validar respuesta (solo 's' o 'n' Permitidos)
-                while(respuesta != 's' && respuesta != 'n') {
-                    printf("Error: Ingrese 's' para si o 'n' para no: ");
-                    scanf(" %c", &respuesta);
-                }
-
-                continuar = (respuesta == 's');
- 
-            }while(continuar);
+            // Mostrar resultados
+            printf("\nPromedio: %.2f\n", promedio);
+            if (promedio >= 7.0) {
+                printf("Estado: Aprobado\n");
+            } else {
+                printf("Estado: Reprobado\n");
+            }
+            printf("\n");
             break;
         }
 
         case 2:
-            //se libera la memoria reservada
-            if(calificaciones != NULL) {
-                free(calificaciones);
-                calificaciones = NULL;
+            // Se libera la memoria reservada
+            if (p != NULL) {
+                free(p);
+                p = NULL;
             }
 
-            //mensaje de despedida
+            // Mensaje de despedida
             printf("\nMemoria liberada!!! Hasta luego.\n");
             break;
+
         default:
-            //opcion del usuario invalida
-            printf("\n=== Opcion invalida === \nPor favor seleccione una opcion del menu:\n");
+            // Opción del usuario inválida
+            printf("\n=== Opción inválida ===\nPor favor seleccione una opción del menú.\n\n");
         }
     }
-
 }
