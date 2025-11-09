@@ -11,7 +11,7 @@ int totalP = 0;
 //Declaraciones de funciones
 int agregarProducto();
 void mostrarProductos();
-double calcularValorTotoalInventario();
+double calcularValorTotalInventario();
 void liberarInventario();
 void llenarInventarioInicial();
 
@@ -37,7 +37,7 @@ int main() {
             case 1:
             //agregar producto
             if (agregarProducto()) {
-                printf("Producto agragado exitosamente.\n");
+                printf("Producto agregado exitosamente.\n");
             }else{
                 printf("Error al agregar el producto.\n");
             }
@@ -48,7 +48,7 @@ int main() {
             break;
             case 3:
             //calcula el valor total del inventario
-            printf("valor total inventario: $%.2f\n", calcularValorTotoalInventario());
+            printf("valor total inventario: $%.2f\n", calcularValorTotalInventario());
             break;
             case 4:
             printf("Saliendo del sistema...\n");
@@ -101,13 +101,14 @@ void llenarInventarioInicial() {
 
     // Insertar productos usando agregarProducto (simulado)
 
-    for (int i = 0; i < 9; i++) {
-        // Reasiganar memoria(
-        char **tempNombres = (char**)realloc(nombresProductos, (totalP + 1) + sizeof(char*));
+    int i = 0;
+    while (i < 9) {
+        // Re - asignar memoria
+        char **tempNombres = (char**)realloc(nombresProductos, (totalP + 1) * sizeof(char*));
         int *tempCantidades = (int*)realloc(cantidades, (totalP + 1) * sizeof(int));
-        double *tempPrecios = (double*)realloc(precios, (totalP + 1) + sizeof(double));
+        double *tempPrecios = (double*)realloc(precios, (totalP + 1) * sizeof(double));
 
-        if(tempNombres == NULL || tempCantidades == NULL || tempPrecios == NULL) {
+        if (tempNombres == NULL || tempCantidades == NULL || tempPrecios == NULL) {
             printf("Error de memoria.\n");
             return;
         }
@@ -118,36 +119,117 @@ void llenarInventarioInicial() {
 
         // Asignar memoria para el nombre
         *(nombresProductos + totalP) = (char*)malloc((strlen(nombresBase + (i * 20)) + 1) * sizeof(char));
-        if(*(nombresProductos + totalP) == NULL) {
+        if (*(nombresProductos + totalP) == NULL) {
             printf("Error de memoria para nombre.\n");
             return;
         }
-        
+        strcpy(*(nombresProductos + totalP), nombresBase + (i * 20));
 
+        // Asignar memoria para cantidad y precio
+        *(cantidades + totalP) = *(cantsBase + i);
+        *(precios + totalP) = *(preciosBase + i);
+
+        totalP = totalP + 1;
+        i = i + 1;
     }
+    // Liberar memoria temporal
+    free(nombresBase);
+    free(cantsBase);
+    free(preciosBase);
 }
 
 int agregarProducto() {
     // Re-Asignar memoria exacta para el nombre y copiarlo
+    char nombreTemp[100];
+    int cantidadTemp;
+    double precioTemp;
+
+    // Pedir los datos del producto
+    printf("\n=== Agregar Producto ===\n");
+    printf("Nombre: ");
+    scanf("%s", nombreTemp);
+    printf("Cantidad: ");
+    scanf("%d", &cantidadTemp);
+    printf("Precio: ");
+    scanf("%lf", &precioTemp);
+
 	// Re-Asignar cantidad y precio en las matrices correspondientes
-	// Pedir los datos del producto
+    char **tempNombres = (char**)realloc(nombresProductos, (totalP + 1) * sizeof(char*));
+    int *tempCantidades = (int*)realloc(cantidades, (totalP + 1) * sizeof(int));
+    double *tempPrecios = (double*)realloc(precios, (totalP + 1) * sizeof(double));
+
+       // Verificar que cada realloc fue exitoso
+    if (tempNombres == NULL || tempCantidades == NULL || tempPrecios == NULL) {
+        printf("Error: No se pudo asignar memoria.\n");
+        return 0;
+    }
+    nombresProductos = tempNombres;
+    cantidades = tempCantidades;
+    precios = tempPrecios;
+
+        // Re-Asignar cantidad y precio en las matrices correspondientes
+    *(nombresProductos + totalP) = (char*)malloc((strlen(nombreTemp) + 1) * sizeof(char));
+    if (*(nombresProductos + totalP) == NULL) {
+        printf("Error: No se pudo asignar memoria para el nombre.\n");
+        return 0;
+    }
+
+    // Usar strcpy para copiar el nombre del producto
+    strcpy(*(nombresProductos + totalP), nombreTemp);
+
+    // Asignar los valores de cantidad y precio en las matrices
+    *(cantidades + totalP) = cantidadTemp;
+    *(precios + totalP) = precioTemp;
+
+    // Si todo sale bien, retornar 1
+    totalP = totalP + 1;
+    return 1;
 }
 
 void mostrarProductos() {
-	printf("=== Productos %d ===\n", numProductos);
+	printf("=== Productos %d ===\n", totalP);
 	// Recorrer todos los productos he imprimirlos
+    int i = 0;
+    while (i < totalP) {
 	// Mostrar: Posición, Nombre, Cantidad, Precio, Valor total
+    double valorTotal = (*(cantidades + i)) * (*(precios + i));
+        printf("Pos %d: %s - Cant: %d - Precio: $%.2f - Valor: $%.2f\n", 
+           i, *(nombresProductos + i), *(cantidades + i), *(precios + i), valorTotal);
+            i = i + 1;
+        }
+    
 }
 
 double calcularValorTotalInventario() {
 	double total = 0;
 	// Recorrer todos los productos de la categoría
+    int i = 0;
+    while (i < totalP) {
 	// Sumar: cantidad * precio para cada producto
+     total = total + (*(cantidades + i)) * (*(precios + i));
+         i = i + 1;
+    }
 	return total;
 }
 
 void liberarInventario() {
 	// Liberar memoria en orden inverso
+    int i = 0;
+        while (i < totalP) {
+    
 	// Primero liberar cada array interno
-	// Luego liberar los arrays principales
+     free(*(nombresProductos + i));
+        i = i + 1;
+    }
+    // Luego liberar los arrays principales
+    free(nombresProductos);
+    free(cantidades);
+    free(precios);
+    // Reinicia punteros y contador
+    nombresProductos = NULL;
+    cantidades = NULL;
+    precios = NULL;
+    totalP = 0;
+    
+    printf("Memoria liberada correctamente.\n");
 }
