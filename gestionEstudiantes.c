@@ -72,6 +72,7 @@ void calcularPromedio(Estudiante *est) {
 void mostrarEstudiante(Estudiante est) {
 	printf("\n--- Información del Estudiante ---\n");
 	//nombre del estudiante
+	printf("Nombre: %s\n", est.nombre);
 	//matricula del estudiante
 	//calificaciones del estudiante
 	//promedio del estudiante
