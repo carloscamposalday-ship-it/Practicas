@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 // Punteros dobles globales para el inventario
 char **nombresProductos = NULL;
@@ -14,6 +15,8 @@ void mostrarProductos();
 double calcularValorTotalInventario();
 void liberarInventario();
 void llenarInventarioInicial();
+void buscarProducto();
+void actualizarStock();
 
 int main() {
     int opcion;
@@ -29,7 +32,9 @@ int main() {
         printf("1. Agregar producto\n");
         printf("2. Mostrar inventario\n");
         printf("3. Calcular valor total del inventario\n");
-        printf("4. Salir\n");
+        printf("4. Buscar producto por nombre\n");
+        printf("5. Actualizar stock\n");
+        printf("6. Salir\n");
         printf("Seleccione opcion: ");
         scanf("%d", &opcion);
 
@@ -51,12 +56,20 @@ int main() {
             printf("valor total inventario: $%.2f\n", calcularValorTotalInventario());
             break;
             case 4:
+            // Buscar producto por nombre o número
+            buscarProducto();
+            break;
+            case 5:
+            // Actualizar stock
+            actualizarStock();
+            break;
+            case 6:
             printf("Saliendo del sistema...\n");
             break;
             default:
             printf("Opcion invalida.\n");
         }
-    } while(opcion != 4);
+    } while(opcion != 6);
 
     // Liberar memoria antes de salir
     liberarInventario();
@@ -100,7 +113,6 @@ void llenarInventarioInicial() {
     *(preciosBase + 8) = 4.50;
 
     // Insertar productos usando agregarProducto (simulado)
-
     int i = 0;
     while (i < 9) {
         // Re - asignar memoria
@@ -147,18 +159,21 @@ int agregarProducto() {
     // Pedir los datos del producto
     printf("\n=== Agregar Producto ===\n");
     printf("Nombre: ");
-    scanf("%s", nombreTemp);
+    // Leer nombre completo con espacios hasta el salto de linea
+    // El espacio inicial consume cualquier newline pendiente
+    // %99[^\n] lee hasta el final de la línea (máx 99 caracteres)
+    scanf(" %99[^\n]", nombreTemp);
     printf("Cantidad: ");
     scanf("%d", &cantidadTemp);
     printf("Precio: ");
     scanf("%lf", &precioTemp);
 
-	// Re-Asignar cantidad y precio en las matrices correspondientes
+    // Re-Asignar cantidad y precio en las matrices correspondientes
     char **tempNombres = (char**)realloc(nombresProductos, (totalP + 1) * sizeof(char*));
     int *tempCantidades = (int*)realloc(cantidades, (totalP + 1) * sizeof(int));
     double *tempPrecios = (double*)realloc(precios, (totalP + 1) * sizeof(double));
 
-       // Verificar que cada realloc fue exitoso
+    // Verificar que cada realloc fue exitoso
     if (tempNombres == NULL || tempCantidades == NULL || tempPrecios == NULL) {
         printf("Error: No se pudo asignar memoria.\n");
         return 0;
@@ -167,7 +182,7 @@ int agregarProducto() {
     cantidades = tempCantidades;
     precios = tempPrecios;
 
-        // Re-Asignar cantidad y precio en las matrices correspondientes
+    // Re-Asignar cantidad y precio en las matrices correspondientes
     *(nombresProductos + totalP) = (char*)malloc((strlen(nombreTemp) + 1) * sizeof(char));
     if (*(nombresProductos + totalP) == NULL) {
         printf("Error: No se pudo asignar memoria para el nombre.\n");
@@ -187,38 +202,112 @@ int agregarProducto() {
 }
 
 void mostrarProductos() {
-	printf("=== Productos %d ===\n", totalP);
-	// Recorrer todos los productos he imprimirlos
+    printf("=== Productos %d ===\n", totalP);
+    // Recorrer todos los productos he imprimirlos
     int i = 0;
     while (i < totalP) {
-	// Mostrar: Posición, Nombre, Cantidad, Precio, Valor total
-    double valorTotal = (*(cantidades + i)) * (*(precios + i));
+        // Mostrar: Posición, Nombre, Cantidad, Precio, Valor total
+        double valorTotal = (*(cantidades + i)) * (*(precios + i));
         printf("Pos %d: %s - Cant: %d - Precio: $%.2f - Valor: $%.2f\n", 
-           i, *(nombresProductos + i), *(cantidades + i), *(precios + i), valorTotal);
-            i = i + 1;
-        }
-    
+               i, *(nombresProductos + i), *(cantidades + i), *(precios + i), valorTotal);
+        i = i + 1;
+    }
 }
 
 double calcularValorTotalInventario() {
-	double total = 0;
-	// Recorrer todos los productos de la categoría
+    double total = 0;
+    // Recorrer todos los productos de la categoría
     int i = 0;
     while (i < totalP) {
-	// Sumar: cantidad * precio para cada producto
-     total = total + (*(cantidades + i)) * (*(precios + i));
-         i = i + 1;
+        // Sumar: cantidad * precio para cada producto
+        total = total + (*(cantidades + i)) * (*(precios + i));
+        i = i + 1;
     }
-	return total;
+    return total;
+}
+
+void buscarProducto() {
+    char entrada[100];
+    int encontrado = 0;
+    
+    printf("\n--- Buscar Producto ---\n");
+    printf("Ingrese nombre, parte del nombre o numero de posicion (0-%d): ", totalP - 1);
+    scanf(" %99[^\n]", entrada);
+
+    // Verificar si la entrada es un número
+    int esNumero = 1;
+    char *ptr = entrada;
+    while (*ptr != '\0') {
+        if (!isdigit(*ptr)) {
+            esNumero = 0;
+            break;
+        }
+        ptr = ptr + 1;
+    }
+
+    if (esNumero) {
+        // Búsqueda por número de posición
+        int posicion = atoi(entrada);
+        if (posicion >= 0 && posicion < totalP) {
+            double valorTotal = (*(cantidades + posicion)) * (*(precios + posicion));
+            printf("ENCONTRADO POR POSICION %d: %s - Cant: %d - Precio: $%.2f - Valor: $%.2f\n", 
+                   posicion, *(nombresProductos + posicion), *(cantidades + posicion), *(precios + posicion), valorTotal);
+            encontrado = 1;
+        } else {
+            printf("Error: Posicion %d fuera de rango. El rango valido es 0-%d.\n", posicion, totalP - 1);
+        }
+    } else {
+        // Búsqueda por nombre
+        int i = 0;
+        while (i < totalP) {
+            // Usar strstr para buscar la subcadena (case insensitive)
+            if (strstr(*(nombresProductos + i), entrada) != NULL) {
+                double valorTotal = (*(cantidades + i)) * (*(precios + i));
+                printf("ENCONTRADO POR NOMBRE: Pos %d - %s - Cant: %d - Precio: $%.2f - Valor: $%.2f\n", 
+                       i, *(nombresProductos + i), *(cantidades + i), *(precios + i), valorTotal);
+                encontrado = 1;
+            }
+            i = i + 1;
+        }
+    }
+
+    if (!encontrado && !esNumero) {
+        printf("No se encontraron productos con el nombre o parte del nombre '%s'.\n", entrada);
+    }
+}
+
+void actualizarStock() {
+    int posicion;
+    int nuevaCantidad;
+
+    printf("\n=== Actualizar Stock ===\n");
+    printf("Ingrese la posicion del producto a actualizar (0-%d): ", totalP - 1);
+    scanf("%d", &posicion);
+
+    if (posicion < 0 || posicion >= totalP) {
+        printf("Error: Posicion invalida.\n");
+        return;
+    }
+
+    printf("Producto actual: %s - Stock: %d\n", *(nombresProductos + posicion), *(cantidades + posicion));
+    printf("Ingrese la nueva cantidad: ");
+    scanf("%d", &nuevaCantidad);
+
+    if (nuevaCantidad < 0) {
+        printf("Error: La cantidad no puede ser negativa.\n");
+        return;
+    }
+
+    *(cantidades + posicion) = nuevaCantidad;
+    printf("Stock actualizado correctamente.\n");
 }
 
 void liberarInventario() {
-	// Liberar memoria en orden inverso
+    // Liberar memoria en orden inverso
     int i = 0;
-        while (i < totalP) {
-    
-	// Primero liberar cada array interno
-     free(*(nombresProductos + i));
+    while (i < totalP) {
+        // Primero liberar cada array interno
+        free(*(nombresProductos + i));
         i = i + 1;
     }
     // Luego liberar los arrays principales
