@@ -74,6 +74,6 @@ void mostrarEstudiante(Estudiante est) {
 	//nombre del estudiante
 	printf("Nombre: %s\n", est.nombre);
 	//matricula del estudiante
-	//calificaciones del estudiante
+	//calificaciones del estudiante 
 	//promedio del estudiante
 }
